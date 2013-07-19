@@ -12,27 +12,56 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
+import android.graphics.Rect;
 
 public class MainActivity extends Activity {
+	
+	private int dWidth = 0;
+	private int dHeight = 0;
 
 	private ImageLoader imageLoader = ImageLoader.getInstance();
 	private DisplayImageOptions options;
 	private ViewPager pager;
 
+	
+	/**
+	 * 获得屏幕的宽和去除标题栏的高
+	 */
+	protected void setHW() {
+		DisplayMetrics dm = new DisplayMetrics();
+		this.getWindowManager().getDefaultDisplay().getMetrics(dm);
+//		Rect rect = new Rect();
+//		View view = this.getWindow().getDecorView();
+//		view.getWindowVisibleDisplayFrame(rect);
+		dHeight = dm.heightPixels;
+		dWidth = dm.widthPixels;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);//去程序标题
 		setContentView(R.layout.activity_main);
+//		new Runnable() {
+//			
+//			@Override
+//			public void run() {
+//				// TODO Auto-generated method stub
+//				setHW();
+//			}
+//		}.run();
+		setHW();
 		String[] imageUrls = {
 				"http://hiphotos.baidu.com/baidu/pic/item/f603918fa0ec08fabf7a641659ee3d6d55fbda0d.jpg",
 				"http://hiphotos.baidu.com/baidu/pic/item/43a7d933c895d143d011bf9273f082025aaf071f.jpg",
@@ -125,7 +154,7 @@ public class MainActivity extends Activity {
 					FrameLayout.LayoutParams.MATCH_PARENT,
 					FrameLayout.LayoutParams.MATCH_PARENT);
 			imageView.setLayoutParams(flParams);
-			imageView.setOnTouchListener(new MulitPointTouchListener());
+			imageView.setOnTouchListener(new MulitPointTouchListener(dWidth, dHeight));
 
 			imageLoader.displayImage(images[position], imageView, options,
 					new SimpleImageLoadingListener() {
