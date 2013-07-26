@@ -23,7 +23,6 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 
 public class MainActivity extends Activity {
 	
@@ -33,35 +32,19 @@ public class MainActivity extends Activity {
 	private ImageLoader imageLoader = ImageLoader.getInstance();
 	private DisplayImageOptions options;
 	private ViewPager pager;
-
-	
-	/**
-	 * 获得屏幕的宽和去除标题栏的高
-	 */
-	protected void setHW() {
-		DisplayMetrics dm = new DisplayMetrics();
-		this.getWindowManager().getDefaultDisplay().getMetrics(dm);
-//		Rect rect = new Rect();
-//		View view = this.getWindow().getDecorView();
-//		view.getWindowVisibleDisplayFrame(rect);
-		dHeight = dm.heightPixels;
-		dWidth = dm.widthPixels;
-	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);//去程序标题
 		setContentView(R.layout.activity_main);
-//		new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//				// TODO Auto-generated method stub
-//				setHW();
-//			}
-//		}.run();
-		setHW();
+		
+		 /* 取得屏幕分辨率大小 */   
+        DisplayMetrics dm=new  DisplayMetrics();  
+        getWindowManager().getDefaultDisplay().getMetrics(dm);  
+        dWidth = dm.widthPixels;  
+        dHeight = dm.heightPixels; 
+		
 		String[] imageUrls = {
 				"http://hiphotos.baidu.com/baidu/pic/item/f603918fa0ec08fabf7a641659ee3d6d55fbda0d.jpg",
 				"http://hiphotos.baidu.com/baidu/pic/item/43a7d933c895d143d011bf9273f082025aaf071f.jpg",
