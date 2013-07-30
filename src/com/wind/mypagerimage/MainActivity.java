@@ -25,27 +25,28 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 
 public class MainActivity extends Activity {
-	
+
 	private int dWidth = 0;
 	private int dHeight = 0;
 
 	private ImageLoader imageLoader = ImageLoader.getInstance();
 	private DisplayImageOptions options;
 	private ViewPager pager;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);//去程序标题
+		requestWindowFeature(Window.FEATURE_NO_TITLE);// 去程序标题
 		setContentView(R.layout.activity_main);
-		
-		 /* 取得屏幕分辨率大小 */   
-        DisplayMetrics dm=new  DisplayMetrics();  
-        getWindowManager().getDefaultDisplay().getMetrics(dm);  
-        dWidth = dm.widthPixels;  
-        dHeight = dm.heightPixels; 
-		
+
+		/* 取得屏幕分辨率大小 */
+		DisplayMetrics dm = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(dm);
+		dWidth = dm.widthPixels;
+		dHeight = dm.heightPixels;
+
 		String[] imageUrls = {
+				"http://www.baidupcs.com/thumbnail/c3d876dc2c40d67e475cacb255cda4d7?fid=1023600217-250528-166834214&time=1375171036&sign=FDTAR-DCb740ccc5511e5e8fedcff06b081203-zUWTKS7MtKxAcyt0qxXwDYWGZTQ%3D&rt=sh&expires=8h&size=c850_u580&quality=100",
 				"http://hiphotos.baidu.com/baidu/pic/item/f603918fa0ec08fabf7a641659ee3d6d55fbda0d.jpg",
 				"http://hiphotos.baidu.com/baidu/pic/item/43a7d933c895d143d011bf9273f082025aaf071f.jpg",
 				"http://hiphotos.baidu.com/baidu/pic/item/63d0f703918fa0ec2ebf584b269759ee3d6ddb7f.jpg",
@@ -115,7 +116,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void finishUpdate(View container) {
-			
+
 		}
 
 		@Override
@@ -137,7 +138,8 @@ public class MainActivity extends Activity {
 					FrameLayout.LayoutParams.MATCH_PARENT,
 					FrameLayout.LayoutParams.MATCH_PARENT);
 			imageView.setLayoutParams(flParams);
-			imageView.setOnTouchListener(new MulitPointTouchListener(dWidth, dHeight));
+			imageView.setOnTouchListener(new MulitPointTouchListener(dWidth,
+					dHeight));
 
 			imageLoader.displayImage(images[position], imageView, options,
 					new SimpleImageLoadingListener() {

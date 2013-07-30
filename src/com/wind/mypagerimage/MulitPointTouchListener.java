@@ -11,8 +11,9 @@ import android.widget.ImageView;
 
 /**
  * 自定义图片放大的监听，限定了图片放大和缩小的拖动范围
+ * 
  * @author wind ModifiedTime:二零一三年七月二十六日　星期五
- *
+ * 
  */
 public class MulitPointTouchListener implements OnTouchListener {
 
@@ -30,24 +31,24 @@ public class MulitPointTouchListener implements OnTouchListener {
 	private PointF mid = new PointF();
 	private float oldDist = 1f;
 
-	/**屏幕宽度*/
+	/** 屏幕宽度 */
 	private int dWidth = 0;
-	/**屏幕高度*/
+	/** 屏幕高度 */
 	private int dHeight = 0;
 	/** 图片的上下左右距离的类 */
 	private ImageState state;
 	private float[] values = new float[9];
-	/**图片宽度*/
+	/** 图片宽度 */
 	private float bWidth;// 图片宽度
-	/**图片高度*/
+	/** 图片高度 */
 	private float bHeight;
-	/**初始原始数据的标志(像图片的原始高和宽，还有图片的原始Matrix,标题栏的高等),只执行一次的操作*/
+	/** 初始原始数据的标志(像图片的原始高和宽，还有图片的原始Matrix,标题栏的高等),只执行一次的操作 */
 	private boolean flag = false;
-	/**图片原始宽度（在放大和缩小的过程中会改变图片的高和宽）*/
+	/** 图片原始宽度（在放大和缩小的过程中会改变图片的高和宽） */
 	private float initWidth = 0.0f;// 图片第一次显示时的初始宽�?
-	/**屏幕原始高度（在放大和缩小的过程中会改变图片的高和宽）*/
+	/** 屏幕原始高度（在放大和缩小的过程中会改变图片的高和宽） */
 	private float initHeight = 0.0f;
-	/**标题栏的高*/
+	/** 标题栏的高 */
 	private float topHeight = 0.0f;
 
 	public MulitPointTouchListener(int dWidth, int dHeight) {
@@ -83,14 +84,14 @@ public class MulitPointTouchListener implements OnTouchListener {
 		setView(imageView);
 		if (!flag) {
 			flag = true;
-			
-			/*定义一个区域*/
-	        Rect frame = new Rect();  
-	        /*区域范围为该textview的区域范围*/
-	        imageView.getWindowVisibleDisplayFrame(frame);  
-	        /*获取状态栏高度。因为获取的区域不包含状态栏*/
-	        topHeight = frame.top;
-	        Log.d("MulitPointTouchListener", "topHeight= " + topHeight);
+
+			/* 定义一个区域 */
+			Rect frame = new Rect();
+			/* 区域范围为该textview的区域范围 */
+			imageView.getWindowVisibleDisplayFrame(frame);
+			/* 获取状态栏高度。因为获取的区域不包含状态栏 */
+			topHeight = frame.top;
+			Log.d("MulitPointTouchListener", "topHeight= " + topHeight);
 
 			float xScale = (float) dWidth / bWidth;
 			float yScale = (float) dHeight / bHeight;
@@ -123,99 +124,136 @@ public class MulitPointTouchListener implements OnTouchListener {
 			mode = NONE;
 			break;
 		case MotionEvent.ACTION_MOVE:
-			boolean b = event.getX() > state.left && event.getX() < state.right
-					&& event.getY() > state.top && event.getY() < state.bottom;
-			if (b) {
-				if (mode == DRAG) {// 拖动
-					matrix.set(savedMatrix);
-					if (bWidth > dWidth && bHeight <= dHeight) {
-						Log.d("MulitPointTouchListener","左右");
-						matrix.postTranslate(event.getX() - start.x, 0);
-					} else if (bHeight > dHeight && bWidth <= dWidth) {
-						Log.d("MulitPointTouchListener","上下");
-						matrix.postTranslate(0, event.getY() - start.y);
+			// boolean b = event.getX() > state.left && event.getX() <
+			// state.right
+			// && event.getY() > state.top && event.getY() < state.bottom;
+			// if (b) {//落点是否在图片上
+			if (mode == DRAG) {// 拖动
+				matrix.set(savedMatrix);
+				matrix.postTranslate(event.getX() - start.x, event.getY()
+						- start.y);
+				// }
+			} else if (mode == ZOOM) {// 缩放
+				float newDist = spacing(event);
+				if (newDist > 10f) {
+					float scale = newDist / oldDist;
+					if (scale < 1) {
+						matrix.set(savedMatrix);
+						matrix.postScale(scale, scale, mid.x, mid.y);
 					} else {
-						Log.d("MulitPointTouchListener","自由");
-						matrix.postTranslate(event.getX() - start.x,
-								event.getY() - start.y);
-					}
-				} else if (mode == ZOOM) {// 缩放
-					float newDist = spacing(event);
-					if (newDist > 10f) {
-						float scale = newDist / oldDist;
-						if (scale < 1) {
+						if (bWidth <= dWidth + dWidth / 2
+								&& bHeight - topHeight <= dHeight - topHeight
+										+ (dHeight - topHeight) / 2) {
 							matrix.set(savedMatrix);
 							matrix.postScale(scale, scale, mid.x, mid.y);
-						} else {
-							if (bWidth < dWidth + dWidth / 2
-									&& bHeight < dHeight + dHeight / 2) {
-								matrix.set(savedMatrix);
-								matrix.postScale(scale, scale, mid.x, mid.y);
-							}
 						}
 					}
 				}
 			}
+			// }
 			break;
 		case MotionEvent.ACTION_UP:
-			if (bWidth <= dWidth && bHeight <= dHeight) {// 放大后图的高和宽没有超出屏幕的高和宽
-				if (state.left <= 0 && state.top <= 0) {//左上角
+			if (bWidth <= dWidth && bHeight <= dHeight - topHeight) {// 放大后图的高和宽没有超出屏幕的高和宽
+				if (state.left <= 0 && state.top <= 0) {// 左上角
 					matrix.postTranslate(0 - state.left, 0 - state.top);
-				} else if (state.top <= 0 && state.right >= dWidth) {//右上角
+				} else if (state.top <= 0 && state.right >= dWidth) {// 右上角
 					matrix.postTranslate(dWidth - state.right, 0 - state.top);
-				} else if (state.right >= dWidth && state.bottom >= dHeight - topHeight) {//右下角
-					matrix.postTranslate(dWidth - state.right, dHeight - topHeight - state.bottom);
-				} else if (state.bottom >= dHeight - topHeight && state.left <= 0) {//左下角
-					matrix.postTranslate(0 - state.left, dHeight - topHeight - state.bottom);
+				} else if (state.right >= dWidth
+						&& state.bottom >= dHeight - topHeight) {// 右下角
+					matrix.postTranslate(dWidth - state.right, dHeight
+							- topHeight - state.bottom);
+				} else if (state.bottom >= dHeight - topHeight
+						&& state.left <= 0) {// 左下角
+					matrix.postTranslate(0 - state.left, dHeight - topHeight
+							- state.bottom);
 				} else {
-					if (state.left <= 0) {//左边
+					if (state.left <= 0) {// 左边
 						matrix.postTranslate(0 - state.left, 0);
-					} else if (state.top <= 0) {//上边
+					} else if (state.top <= 0) {// 上边
 						matrix.postTranslate(0, 0 - state.top);
-					} else if (state.right >= dWidth) {//右边
+					} else if (state.right >= dWidth) {// 右边
 						matrix.postTranslate(dWidth - state.right, 0);
-					} else if (state.bottom >= dHeight - topHeight) {//下边
-						matrix.postTranslate(0, dHeight - topHeight - state.bottom);
+					} else if (state.bottom >= dHeight - topHeight) {// 下边
+						matrix.postTranslate(0, dHeight - topHeight
+								- state.bottom);
 					}
 				}
-				if (bWidth < initWidth && bHeight < initHeight) {
+				if (bWidth <= initWidth && bHeight <= initHeight - topHeight) {
 					matrix.set(initMatrix);
 				}
-			} else if (bWidth > dWidth || bHeight > dHeight) {//图片和高和宽有满足一个大于屏幕的高和宽
-				
-				if (bWidth > dWidth && bHeight <= dHeight) {// 放大后的图片宽大于屏幕的宽，放大后的高不大于屏幕的高时，即左右拖动时
-					if (state.left >= 0 && state.right > dWidth) {//左边
-						matrix.postTranslate(0 - state.left, 0);
-					} else if (state.right <= dWidth && state.left < 0) {//右边
-						matrix.postTranslate(dWidth - state.right, 0);
-					}
-				} else if (bHeight > dHeight && bWidth <= dWidth) {// 放大后的图片高大于屏幕的高，放大后的宽不大于屏幕的宽时，即上下拖动时
-					if (state.top >= 0 && state.bottom > dHeight) {//上边
-						matrix.postTranslate(0, 0 - state.top);
-					} else if (state.bottom <= dHeight - topHeight && state.top < 0) {//下边
-						matrix.postTranslate(0, dHeight - topHeight - state.bottom);
-					}
-				} else if (bWidth > dWidth && bHeight > dHeight) {// 放大后图片的高和宽都大于屏幕的高和宽时
+			} else if (bWidth >= dWidth || bHeight >= dHeight - topHeight) {// 图片和高和宽有满足一个大于屏幕的高和宽
 
-					if (state.left >= 0 && state.top < 0 && state.right > dWidth && state.bottom > dHeight) {//左边
-						matrix.postTranslate(0 - state.left, 0);
-					} else if (state.top >= 0 && state.left < 0 && state.right > dWidth && state.bottom > dHeight) {//上边
+				if (bWidth >= dWidth && bHeight <= dHeight - topHeight) {// 放大后的图片宽大于屏幕的宽，放大后的高不大于屏幕的高时，即左右拖动时
+					if (state.left >= 0 && state.right >= dWidth) {// 左边
+						matrix.postTranslate(0 - state.left, (dHeight
+								- topHeight - bHeight)
+								/ 2 - state.top);
+					} else if (state.right <= dWidth && state.left <= 0) {// 右边
+						matrix.postTranslate(dWidth - state.right, (dHeight
+								- topHeight - bHeight)
+								/ 2 - state.top);
+					} else if (state.top <= 0
+							&& state.bottom <= dHeight - topHeight) {// 上边
 						matrix.postTranslate(0, 0 - state.top);
-					} else if (state.right <= dWidth && state.left < 0 && state.top < 0 && state.bottom > dHeight) {//右边
-						matrix.postTranslate(dWidth - state.right, 0);
-					} else if (state.bottom <= dHeight - topHeight && state.left < 0 && state.top < 0 && state.right > dWidth) {//下边
-						matrix.postTranslate(0, dHeight - topHeight - state.bottom);
-					} else {
-						if (state.left >= 0 && state.top >= 0 && state.right > dWidth && state.bottom > dHeight) {//左上角
-							matrix.postTranslate(0 - state.left, 0 - state.top);
-						} else if (state.top >= 0 && state.right <= dWidth && state.left < 0 && state.bottom > dHeight) {//右上角
-							matrix.postTranslate(dWidth - state.right, 0 - state.top);
-						} else if (state.right <= dWidth && state.bottom <= dHeight - topHeight && state.left < 0 && state.top < 0) {//右下角
-							matrix.postTranslate(dWidth - state.right, dHeight - topHeight - state.bottom);
-						} else if (state.bottom <= dHeight - topHeight && state.left >= 0 && state.top < 0 && state.right > dWidth) {//左下角
-							matrix.postTranslate(0 - state.left, dHeight - topHeight - state.bottom);
-						} 
+					} else if (state.bottom >= dHeight - topHeight
+							&& state.top >= 0) {// 下边
+						matrix.postTranslate(0, dHeight - topHeight
+								- state.bottom);
 					}
+				} else if (bHeight >= dHeight - topHeight && bWidth <= dWidth) {// 放大后的图片高大于屏幕的高，放大后的宽不大于屏幕的宽时，即上下拖动时
+					if (state.top >= 0 && state.bottom >= dHeight - topHeight) {// 上边
+						matrix.postTranslate(
+								(dWidth - bWidth) / 2 - state.left,
+								0 - state.top);
+					} else if (state.bottom <= dHeight - topHeight
+							&& state.top <= 0) {// 下边
+						matrix.postTranslate(
+								(dWidth - bWidth) / 2 - state.left, dHeight
+										- topHeight - state.bottom);
+					} else if (state.left <= 0 && state.right <= dWidth) {// 左边
+						matrix.postTranslate(0 - state.left, 0);
+					} else if (state.right >= dWidth && state.left >= 0) {// 右边
+						matrix.postTranslate(dWidth - state.right, 0);
+					}
+				} else if (bWidth >= dWidth && bHeight >= dHeight) {// 放大后图片的高和宽都大于屏幕的高和宽时
+
+					if (state.left >= 0 && state.top >= 0
+							&& state.right >= dWidth && state.bottom >= dHeight) {// 左上角
+						matrix.postTranslate(0 - state.left, 0 - state.top);
+					} else if (state.top >= 0 && state.right <= dWidth
+							&& state.left <= 0 && state.bottom >= dHeight) {// 右上角
+						matrix.postTranslate(dWidth - state.right,
+								0 - state.top);
+					} else if (state.right <= dWidth
+							&& state.bottom <= dHeight - topHeight
+							&& state.left <= 0 && state.top <= 0) {// 右下角
+						matrix.postTranslate(dWidth - state.right, dHeight
+								- topHeight - state.bottom);
+					} else if (state.bottom <= dHeight - topHeight
+							&& state.left >= 0 && state.top <= 0
+							&& state.right >= dWidth) {// 左下角
+						matrix.postTranslate(0 - state.left, dHeight
+								- topHeight - state.bottom);
+					} else {
+						if (state.left >= 0 && state.top <= 0
+								&& state.right >= dWidth
+								&& state.bottom >= dHeight) {// 左边
+							matrix.postTranslate(0 - state.left, 0);
+						} else if (state.top >= 0 && state.left <= 0
+								&& state.right >= dWidth
+								&& state.bottom >= dHeight) {// 上边
+							matrix.postTranslate(0, 0 - state.top);
+						} else if (state.right <= dWidth && state.left <= 0
+								&& state.top <= 0 && state.bottom >= dHeight) {// 右边
+							matrix.postTranslate(dWidth - state.right, 0);
+						} else if (state.bottom <= dHeight - topHeight
+								&& state.left <= 0 && state.top <= 0
+								&& state.right >= dWidth) {// 下边
+							matrix.postTranslate(0, dHeight - topHeight
+									- state.bottom);
+						}
+					}
+
 				}
 			}
 			break;
@@ -227,6 +265,7 @@ public class MulitPointTouchListener implements OnTouchListener {
 
 	/**
 	 * 计算两点之间的距离
+	 * 
 	 * @param event
 	 * @return
 	 */
@@ -241,6 +280,7 @@ public class MulitPointTouchListener implements OnTouchListener {
 
 	/**
 	 * 缩放的中间点
+	 * 
 	 * @param point
 	 * @param event
 	 */
